@@ -1,0 +1,22 @@
+1. Install cscope and ctags
+    
+    # sudo apt-get install cscope ctags
+
+2. run install.sh
+
+    # sh install.sh
+
+Usage:
+
+Work with Linux kernel
+
+    # tar zxvf kernel-2.6.29.tar.gz
+    # cd kernel-2.6.29
+    # goproj.sh `pwd`
+
+Work with Android source
+
+    # cd Android-2.2
+    # goproj.sh `pwd`
+    
+
