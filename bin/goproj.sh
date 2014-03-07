@@ -15,7 +15,7 @@ if [ -n "$1" ]; then
             -o -name "*.mk" \
             > $CSCOPE_FILE
 	cscope -bkq -i $CSCOPE_FILE
-	ctags -R --exclude=.svn
+	ctags -R --exclude=.svn --exclude=.git
 else
 	echo "Please key-in path of project"
 fi
