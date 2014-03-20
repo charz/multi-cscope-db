@@ -21,7 +21,44 @@
 " Happy cscoping,
 "
 " Jason Duell       jduell@alumni.princeton.edu     2002/3/7
+" Charles Hsu       charles0126@gmial.com           2013/03/17
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+
+function CsReload()
+    if exists("s:CSCOPE_DB_EXIST")
+        silent cscope kill 0
+        echohl Title | echom 'Update...' | echohl None
+        let SRC_ROOT = CsGetDBpath() 
+        silent exe 'cd '. SRC_ROOT
+        call CsGenDB()
+        
+        " Back to work directory
+        silent exe 'cd '. s:CURDIR
+        echohl Title | echom 'Update DB: '. s:CSCOPE_DB | echohl None
+    else
+        echohl WarningMsg | echom 'No cscope database!!!' | echohl None
+        let buildnow = input('Would you want to build an new DB?(y/N)')
+        if toupper(buildnow) == 'Y'
+            let s:CSCOPE_DB = getcwd() . '/cscope.out'
+            let s:CSCOPE_DB_EXIST = 1
+            call CsGenDB()
+            echohl Title | echom 'Update DB: '. s:CSCOPE_DB | echohl None
+        endif
+    endif
+endf
+
+function CsGenDB()
+    silent !find . -name '*.aidl' -o -name '*.cc' -o -name '*.h' -o -name '*.c' -o -name '*.cpp' -o -name '*.java' -o -name '*.py' > '/tmp/.cs_db'
+    silent !cscope -bkq -i '/tmp/.cs_db'
+    silent !ctags -R --exclude=.svn --exclude=.git
+    silent exe 'cs add '. s:CSCOPE_DB
+    :redraw!
+endf
+
+function CsGetDBpath()
+    return '/'. join(split(s:CSCOPE_DB, '/')[0:-2], '/') 
+endf
 
 
 " This tests to see if vim was configured with the '--enable-cscope' option
@@ -29,7 +66,6 @@
 if has("cscope")
 
     """"""""""""" Standard cscope/vim boilerplate
-
     " use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
     "set cscopetag
 
@@ -38,22 +74,21 @@ if has("cscope")
     set csto=0
 
     " add the database pointed to by environment variable 
-        let $CURDIR = getcwd()
-		let i = 1
-		while i < 20
-			if filereadable("cscope.out")
-				let db = getcwd() . "/cscope.out"
-				"echo db
-				let $CSCOPE_DB = db
-				cs add $CSCOPE_DB
-				let i = 32
-			else
-				cd ..
-				let i += 1
-			endif
-		endwhile
-        cd $CURDIR
-
+    let s:CURDIR = getcwd()
+    let s:CSCOPE_DB = getcwd()
+    while (getcwd() != '/')
+        "echo 'Try search: '.getcwd()
+        if filereadable("cscope.out")
+            let s:CSCOPE_DB_EXIST = 1
+            let s:CSCOPE_DB = getcwd() . "/cscope.out"
+            silent exe 'cs add '. s:CSCOPE_DB
+            break 
+        endif
+        " look for parent folder
+        silent cd ..
+    endwhile
+    silent exe 'cd '. s:CURDIR
+    
     " show msg when any other cscope db added
     set cscopeverbose  
 
@@ -115,14 +150,14 @@ if has("cscope")
     " can be simulated roughly via:
     "    nmap <C-@>s <C-W><C-S> :cs find s <C-R>=expand("<cword>")<CR><CR>	
 
-    nmap <C-@>s :scs find s <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-@>g :scs find g <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-@>c :scs find c <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-@>t :scs find t <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-@>e :scs find e <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-@>f :scs find f <C-R>=expand("<cfile>")<CR><CR>	
-    nmap <C-@>i :scs find i ^<C-R>=expand("<cfile>")<CR>$<CR>	
-    nmap <C-@>d :scs find d <C-R>=expand("<cword>")<CR><CR>	
+"    nmap <C-@>s :scs find s <C-R>=expand("<cword>")<CR><CR>	
+"    nmap <C-@>g :scs find g <C-R>=expand("<cword>")<CR><CR>	
+"    nmap <C-@>c :scs find c <C-R>=expand("<cword>")<CR><CR>	
+"    nmap <C-@>t :scs find t <C-R>=expand("<cword>")<CR><CR>	
+"    nmap <C-@>e :scs find e <C-R>=expand("<cword>")<CR><CR>	
+"    nmap <C-@>f :scs find f <C-R>=expand("<cfile>")<CR><CR>	
+"    nmap <C-@>i :scs find i ^<C-R>=expand("<cfile>")<CR>$<CR>	
+"    nmap <C-@>d :scs find d <C-R>=expand("<cword>")<CR><CR>	
 
 
     " Hitting CTRL-space *twice* before the search type does a vertical 
@@ -168,6 +203,12 @@ if has("cscope")
     " timeoutlent (default: 1000 = 1 second, which is sluggish) is used.
     "
     "set ttimeoutlen=100
+
+    "
+    " Reload cscope DB or create new one
+    "
+    nmap <leader>rb :call CsReload()<CR>
+
 
 endif
 
