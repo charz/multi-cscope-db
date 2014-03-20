@@ -25,7 +25,7 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
-function CsReload()
+function CSBuild()
     if exists("s:CSCOPE_DB_EXIST")
         silent cscope kill 0
         echohl Title | echom 'Update...' | echohl None
@@ -34,7 +34,7 @@ function CsReload()
         call CsGenDB()
         
         " Back to work directory
-        silent exe 'cd '. s:CURDIR
+"        silent exe 'cd '. s:CURDIR
         echohl Title | echom 'Update DB: '. s:CSCOPE_DB | echohl None
     else
         echohl WarningMsg | echom 'No cscope database!!!' | echohl None
@@ -43,7 +43,7 @@ function CsReload()
             let s:CSCOPE_DB = getcwd() . '/cscope.out'
             let s:CSCOPE_DB_EXIST = 1
             call CsGenDB()
-            echohl Title | echom 'Update DB: '. s:CSCOPE_DB | echohl None
+            echohl Title | echom 'Build new DB: '. s:CSCOPE_DB | echohl None
         endif
     endif
 endf
@@ -87,8 +87,11 @@ if has("cscope")
         " look for parent folder
         silent cd ..
     endwhile
-    silent exe 'cd '. s:CURDIR
-    
+
+    if !exists("s:CSCOPE_DB_EXIST")
+        silent exe 'cd '. s:CURDIR
+    endif 
+
     " show msg when any other cscope db added
     set cscopeverbose  
 
@@ -207,7 +210,9 @@ if has("cscope")
     "
     " Reload cscope DB or create new one
     "
-    nmap <leader>rb :call CsReload()<CR>
+    "
+    :command -nargs=0 CSBuild :call CSBuild()
+"    nmap <leader>rb :call CSBuild()<CR>
 
 
 endif
