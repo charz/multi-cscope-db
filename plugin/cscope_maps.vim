@@ -25,7 +25,7 @@
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 
-function CSBuild()
+function! CSBuild()
     if exists("s:CSCOPE_DB_EXIST")
         silent cscope kill 0
         echohl Title | echom 'Update...' | echohl None
@@ -48,7 +48,7 @@ function CSBuild()
     endif
 endf
 
-function CsGenDB()
+function! CsGenDB()
     silent !find . -name '*.aidl' -o -name '*.cc' -o -name '*.h' -o -name '*.c' -o -name '*.cpp' -o -name '*.java' -o -name '*.py' > '/tmp/.cs_db'
     silent !cscope -bkq -i '/tmp/.cs_db'
     silent !ctags -R --exclude=.svn --exclude=.git
@@ -56,7 +56,7 @@ function CsGenDB()
     :redraw!
 endf
 
-function CsGetDBpath()
+function! CsGetDBpath()
     return '/'. join(split(s:CSCOPE_DB, '/')[0:-2], '/') 
 endf
 
@@ -211,7 +211,7 @@ if has("cscope")
     " Reload cscope DB or create new one
     "
     "
-    :command -nargs=0 CSBuild :call CSBuild()
+    :command! -nargs=0 CSBuild :call CSBuild()
 "    nmap <leader>rb :call CSBuild()<CR>
 
 
